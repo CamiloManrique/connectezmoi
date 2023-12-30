@@ -4,6 +4,7 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import axios from 'axios';
 import { isAfter, isBefore }  from "date-fns";
+import { slotIsBusy } from './utils';
 
 const baseUrl = 'https://connectez-moi.ca/version-test/api/1.1/obj';
 const token = '697d794009cfca19fff1a40ad3e4f6f1';
@@ -72,9 +73,10 @@ app.get('/application-valid', async (req, res) => {
             const userStartDate = new Date(job.StartDate);
             const userEndDate = new Date(job.EndDate);
 
-            const isFree = isAfter(applicationJob.StartDate, userEndDate) && isBefore(applicationJob.EndDate, userStartDate);
+            const appJob = { start: new Date(applicationJob.StartDate), end: new Date(applicationJob.EndDate) };
+            const userJob = { start: userStartDate, end: userEndDate };
 
-            if (!isFree) {
+            if (slotIsBusy(appJob, userJob)) {
                 isValid = false;
                 break;
             }
