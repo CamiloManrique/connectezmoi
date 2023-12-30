@@ -1,0 +1,6 @@
+{
+    "ignore": ["**/*.test.ts", "**/*.spec.ts", "node_modules"],
+    "watch": ["build/*"],
+    "exec": "node -r dotenv/config ./build/index.js",
+    "ext": "js"
+}
