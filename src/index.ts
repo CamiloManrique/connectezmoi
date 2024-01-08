@@ -3,7 +3,6 @@ import 'express-async-errors';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import axios from 'axios';
-import { isAfter, isBefore }  from "date-fns";
 import { slotIsBusy } from './utils';
 
 const baseUrl = 'https://connectez-moi.ca/version-test/api/1.1/obj';
@@ -29,6 +28,8 @@ app.get('/application-valid', async (req, res) => {
 
     const { applicationId } = req.query;
 
+    console.log('req app id', applicationId);
+
     let resp = await axios.get(baseUrl + '/application/' + applicationId, {
         headers: {
             Authorization: `Bearer ${token}`
@@ -47,18 +48,19 @@ app.get('/application-valid', async (req, res) => {
         },
         params: {
             constraints: JSON.stringify([
-                { "key": "User", "constraint_type": "equals", "value": application.User }
+                { "key": "User", "constraint_type": "equals", "value": application.User },
+                { "key": "Status", "constraint_type": "equals", "value": "accepted" }
             ])
         }
     });
 
-    const applications = resp.data.response;
+    const applications = resp.data.response.results;
 
-    console.log('apps', JSON.stringify(applications, null, 2));
+    console.log('apps ids', JSON.stringify(applications.map((a: any) => a['_id']), null, 2));
 
     let isValid = true;
 
-    for (const userApplication of applications.results) {
+    for (const userApplication of applications) {
         if (userApplication.User === application.User) {
             console.log('user ap', userApplication);
 
@@ -77,6 +79,7 @@ app.get('/application-valid', async (req, res) => {
             const userJob = { start: userStartDate, end: userEndDate };
 
             if (slotIsBusy(appJob, userJob)) {
+                console.log('slot is busy')
                 isValid = false;
                 break;
             }
